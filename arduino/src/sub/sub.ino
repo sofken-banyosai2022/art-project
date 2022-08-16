@@ -9,6 +9,20 @@ typedef struct struct_message {
 /* Global variables */
 struct_message myData; // データ
 
+/* ESP-NOWのSetup */
+void setupEspNow() {
+
+  // ESP-NOWを初期化
+  if (esp_now_init() != 0) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+
+  // ESP-NOWの設定
+  esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);  // 自分の役割を設定
+  esp_now_register_recv_cb(OnDataRecv);       // 受信完了時のイベントを登録
+}
+
 /* データ受信時のコールバック関数 */
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   memcpy(&myData, incomingData, sizeof(myData));
@@ -28,15 +42,7 @@ void setup() {
   Serial.print("\n[setup] MAC Address: ");
   Serial.println(WiFi.macAddress());
 
-  // ESP-NOWを初期化
-  if (esp_now_init() != 0) {
-    Serial.println("Error initializing ESP-NOW");
-    return;
-  }
-
-  // ESP-NOWの設定
-  esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);  // 自分の役割を設定
-  esp_now_register_recv_cb(OnDataRecv);       // 受信完了時のイベントを登録
+  setupEspNow(); // ESP-NOWのSetup
 }
 
 void loop() {
