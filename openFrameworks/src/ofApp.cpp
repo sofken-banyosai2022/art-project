@@ -11,7 +11,8 @@ void ofApp::setup(){
     /* ==============================
       OSC
     ============================== */
-    receiver.setup(PORT);  // 受信機を設定
+    receiver.setup(PORT);     // 受信機を設定
+    sender.setup(HOST, PORT); // 送信機を設定
 }
 
 //--------------------------------------------------------------
@@ -79,6 +80,18 @@ void ofApp::mousePressed(int x, int y, int button){
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
 
+    /* ==============================
+       OSC
+    ============================== */
+    ofxOscMessage m;             // OSCメッセージ
+    m.setAddress("/lambda/msg"); // アドレス設定
+    m.addIntArg(1);              // 値を設定
+    m.addFloatArg(1.23);         // 値を設定
+    m.addStringArg("Hello");     // 値を設定
+    sender.sendMessage(m);       // OSCメッセージを送信
+
+    // ログ出力
+    std::cout << m << endl;
 }
 
 //--------------------------------------------------------------

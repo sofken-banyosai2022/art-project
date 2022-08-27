@@ -4,6 +4,7 @@
 #include "ofxOsc.h"
 
 /* グローバル変数 */
+#define HOST "***.***.***.***" // 送信先のIPアドレス
 #define PORT ***** // ポート番号
 
 class ofApp : public ofBaseApp{
@@ -27,4 +28,5 @@ public:
 
 	/* OSC */
 	ofxOscReceiver receiver; // 受信機
+	ofxOscSender sender;	 // 送信機
 };
