@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "ofMain.h"
+#include "ofxGui.h"
 #include "ofxOsc.h"
 
 /* グローバル変数 */
@@ -26,7 +27,16 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 
+	/* GUI */
+	ofxPanel gui;			  // パネル
+	ofxButton button;		  // ボタン
+	void buttonPressed();	  // ボタンが押されたとき
+
 	/* OSC */
 	ofxOscReceiver receiver; // 受信機
 	ofxOscSender sender;	 // 送信機
+	void sendOSC();			 // OSCを送信
+
+	/* Other */
+	void LOG(string category, ofxOscMessage m); // ログ出力
 };

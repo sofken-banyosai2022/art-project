@@ -9,7 +9,14 @@ void ofApp::setup(){
     ofSetWindowTitle("Art_Project"); // ウィンドウタイトルを設定
 
     /* ==============================
-      OSC
+       GUI
+    ============================== */
+    gui.setup(); // GUI設定
+    gui.add(button.setup("send OSC")); // ボタン追加
+    button.addListener(this, &ofApp::buttonPressed); // イベントリスナー追加
+
+    /* ==============================
+       OSC
     ============================== */
     receiver.setup(PORT);     // 受信機を設定
     sender.setup(HOST, PORT); // 送信機を設定
@@ -28,17 +35,12 @@ void ofApp::update(){
         // 次のメッセージを取得
         ofxOscMessage m;
         receiver.getNextMessage(m);
-
-        // ログ出力
-        // std::cout << m << endl;
+        LOG("OSC", m); // ログ出力
 
         // アドレス分岐処理
         if (m.getAddress() == "/mouse/button") {
 
             if (m.getArgAsString(0) == "up") {
-
-                // ログ出力
-                std::cout << m.getArgAsString(0) << endl;
 
                 // ソフトを起動し、音源再生
                 ShellExecute(NULL, "open", "filePath", NULL, NULL, SW_SHOWNORMAL);
@@ -50,6 +52,10 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 
+    /* ==============================
+       GUI
+    ============================== */
+    gui.draw(); // Guiを描画
 }
 
 //--------------------------------------------------------------
@@ -80,18 +86,6 @@ void ofApp::mousePressed(int x, int y, int button){
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
 
-    /* ==============================
-       OSC
-    ============================== */
-    ofxOscMessage m;             // OSCメッセージ
-    m.setAddress("/lambda/msg"); // アドレス設定
-    m.addIntArg(1);              // 値を設定
-    m.addFloatArg(1.23);         // 値を設定
-    m.addStringArg("Hello");     // 値を設定
-    sender.sendMessage(m);       // OSCメッセージを送信
-
-    // ログ出力
-    std::cout << m << endl;
 }
 
 //--------------------------------------------------------------
@@ -117,4 +111,27 @@ void ofApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){
 
+}
+
+//--------------------------------------------------------------
+/* OSCを送信 */
+void ofApp::sendOSC() {
+    ofxOscMessage m;             // OSCメッセージ
+    m.setAddress("/lambda/msg"); // アドレス設定
+    m.addIntArg(1);              // 値を設定
+    sender.sendMessage(m);       // OSCメッセージを送信
+    LOG("OSC", m);               // ログ出力
+}
+
+//--------------------------------------------------------------
+/* ボタンが押されたとき */
+void ofApp::buttonPressed() {
+    sendOSC(); // OSCを送信
+}
+
+//--------------------------------------------------------------
+/* ログ出力 */
+void ofApp::LOG(string category, ofxOscMessage message) {
+    string text = "[" + category + "] ";
+    std::cout << text << message << endl;
 }
