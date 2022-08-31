@@ -1,5 +1,4 @@
-﻿#include <iostream>
-#include <Windows.h>
+﻿#include <Windows.h>
 #include "ofApp.h"
 
 //--------------------------------------------------------------
@@ -114,18 +113,39 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 }
 
 //--------------------------------------------------------------
-/* OSCを送信 */
+/* OSC送信 */
 void ofApp::sendOSC() {
-    ofxOscMessage m;             // OSCメッセージ
-    m.setAddress("/lambda/msg"); // アドレス設定
-    m.addIntArg(1);              // 値を設定
-    sender.sendMessage(m);       // OSCメッセージを送信
-    LOG("OSC", m);               // ログ出力
+    ofxOscMessage m;                            // OSCメッセージ
+    int length = message.number -> size();      // message.numberの長さ
+
+    m.setAddress("/of/esp");                    // アドレス設定
+    m.addIntArg(message.mode1);
+    m.addIntArg(length);
+
+    for (size_t i = 0; i < length; i++){
+        m.addIntArg(message.number -> at(i));
+    }
+
+    m.addIntArg(message.color[0]);
+    m.addIntArg(message.color[1]);
+    m.addIntArg(message.color[2]);
+
+    sender.sendMessage(m);                      // OSCメッセージを送信
+    message.number -> clear();                  // 要素を全て削除
+    LOG("OSC", m);                              // ログ出力
 }
 
 //--------------------------------------------------------------
 /* ボタンが押されたとき */
 void ofApp::buttonPressed() {
+
+    // 値を設定
+    message.mode1 = 1;
+    message.number -> push_back(0);
+    message.color[0] = 255;
+    message.color[1] = 255;
+    message.color[2] = 255;
+
     sendOSC(); // OSCを送信
 }
 

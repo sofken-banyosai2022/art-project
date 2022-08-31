@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <iostream>
+#include <vector>
 #include "ofMain.h"
 #include "ofxGui.h"
 #include "ofxOsc.h"
@@ -28,14 +30,20 @@ public:
 	void gotMessage(ofMessage msg);
 
 	/* GUI */
-	ofxPanel gui;			  // パネル
-	ofxButton button;		  // ボタン
-	void buttonPressed();	  // ボタンが押されたとき
+	ofxPanel gui;						// パネル
+	ofxButton button;					// ボタン
+	void buttonPressed();				// ボタンが押されたとき
 
 	/* OSC */
-	ofxOscReceiver receiver; // 受信機
-	ofxOscSender sender;	 // 送信機
-	void sendOSC();			 // OSCを送信
+	ofxOscReceiver receiver;			// 受信機
+	ofxOscSender sender;				// 送信機
+	struct messageStruct{
+		int mode1;						// 送信モードを指定
+		std::vector<int> number[10];	// 送信するユニットを指定
+		int color[3];					// 送信する色を指定
+	};
+	messageStruct message;				// OSC送信用メッセージ
+	void sendOSC();						// OSC送信
 
 	/* Other */
 	void LOG(string category, ofxOscMessage m); // ログ出力
