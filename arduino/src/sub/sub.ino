@@ -17,6 +17,7 @@ void setupEspNow() {
   // ESP-NOWを初期化
   if (esp_now_init() != 0) {
     Serial.println("Error initializing ESP-NOW");
+    ESP.restart(); // リスタート
     return;
   }
 
@@ -66,6 +67,7 @@ void setup() {
 
   // Wi-Fi
   WiFi.mode(WIFI_STA);
+  WiFi.disconnect(); // Wi-Fi切断
 
   // MACアドレスを表示
   Serial.print("\n[setup] MAC Address: ");
