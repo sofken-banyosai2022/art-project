@@ -4,7 +4,9 @@
 
 /* データの構造 */
 typedef struct struct_message {
-  int mode1;
+  int mode1;      // 送信モードを指定
+  int number[10]; // 送信するユニットを指定
+  int color[3];   // 送信する色を指定
 } struct_message;
 
 /* Global variables */
@@ -53,13 +55,34 @@ void setupEspNow() {
 void setupOSC() {
 
   // OSC受信
-  OscWiFi.subscribe(port, "/lambda/msg",
+  OscWiFi.subscribe(port, "/of/esp",
     [](const OscMessage& m) {
-      Serial.print(m.address()); Serial.print(" ");
-      Serial.println(m.arg<int>(0));
+      size_t i;
+      size_t numberLength;
+
+      // address
+      Serial.print("address: "); Serial.println(m.address()); // ログ出力
 
       // 送信するデータを設定
-      myData.mode1 = m.arg<int>(0);
+      // mode1
+      myData.mode1 = m.arg<int>(0); 
+      Serial.print("mode1: "); Serial.println(m.arg<int>(0)); // ログ出力
+
+      // number
+      numberLength = m.arg<int>(1);
+      memset(myData.number, 0, sizeof(myData.number)); // myData.number配列を初期化
+      Serial.print("numberLength: "); Serial.println(m.arg<int>(1)); // ログ出力
+
+      for (i = 0; i < numberLength; i++) {
+        myData.number[i] =  m.arg<int>(2 + i);
+        Serial.print("number: "); Serial.println(m.arg<int>(2 + i)); // ログ出力
+      }
+
+      // color      
+      for (i = 0; i < 3; i++) {
+        myData.color[i] =  m.arg<int>(2 + numberLength + i);
+        Serial.print("color: "); Serial.println(m.arg<int>(2 + numberLength + i)); // ログ出力
+      }
 
       // ESP-NOWでデータを送信
       esp_now_send(broadcast_mac, (uint8_t *) &myData, sizeof(myData));
