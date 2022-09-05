@@ -3,7 +3,9 @@
 
 /* データの構造 */
 typedef struct struct_message {
-  int mode1;
+  int mode1;      // 送信モードを指定
+  int number[10]; // 送信するユニットを指定
+  int color[3];   // 送信する色を指定
 } struct_message;
 
 /* Global variables */
@@ -25,9 +27,36 @@ void setupEspNow() {
 
 /* データ受信時のコールバック関数 */
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
+  size_t i;
+  int numberLength;
   memcpy(&myData, incomingData, sizeof(myData));
-  Serial.print("mode1: ");
-  Serial.println(myData.mode1);
+
+  // ログ出力
+  // mode1
+  Serial.print("mode1: "); Serial.println(myData.mode1);
+
+  // number
+  for (i = 1; i < 10; i++) {
+    if (!myData.number[i]) {
+      numberLength = i;
+      break;
+    }
+  }
+  Serial.print("numberLength: "); Serial.println(numberLength);
+  Serial.print("number:");
+
+  for (i = 0; i < numberLength; i++) {
+    Serial.print(" "); Serial.print(myData.number[i]);
+  }
+
+  // color
+  Serial.print("\ncolor:");
+
+  for (i = 0; i < 3; i++) {
+    Serial.print(" "); Serial.print(myData.color[i]);
+  }
+
+  Serial.println("");
 }
 
 void setup() {
