@@ -14,17 +14,17 @@ struct_message myData;                                          // データ
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // ブロードキャスト用MACアドレス
 
 // Wi-Fi
-const char* ssid = "*****";
-const char* password = "*****";
+const char* ssid = WiFi_SSID;
+const char* password = WiFi_PASSWORD;
 
 // IPAddress
-IPAddress ip(***, ***, *, *);
-IPAddress gateway(***, ***, *, *);
-IPAddress subnet(***, ***, ***, *);
+IPAddress ip(IP_ADDRESS_IP);
+IPAddress gateway(IP_ADDRESS_GATEWAY);
+IPAddress subnet(IP_ADDRESS_SUBNET);
 
 // OSC
-const char* host = "***.***.*.*";
-const int port = *****;
+const char* host = OSC_HOST;
+const int port = OSC_PORT;
 
 /* データ送信時のコールバック関数 */
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {

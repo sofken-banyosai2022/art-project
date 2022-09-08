@@ -10,7 +10,7 @@ typedef struct struct_message {
 
 /* Global variables */
 struct_message myData;    // データ
-const int unitNumber = 1; // ユニット番号
+const int unitNumber = UNIT_NUMBER; // ユニット番号
 const int LED_R = 12;     // 赤色LED Pin番号
 const int LED_G = 14;     // 緑色LED Pin番号
 const int LED_B = 13;     // 青色LED Pin番号
