@@ -1,6 +1,13 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
-    "strict": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "strict": true
+  },
+  "ts-node": {
+    "esm": true
   }
 }
