@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "start": "npm run build:live",
+    "build": "ts-node src/index.ts",
     "build:live": "nodemon -L"
   },
   "keywords": [],
