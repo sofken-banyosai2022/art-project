@@ -1,18 +1,49 @@
 ﻿#include <Windows.h>
+#include <vector>
+#include <string>
+#include <sstream>
 #include "ofApp.h"
+
+using namespace std;
+
+//--------------------------------------------------------------
+/* split */
+vector<string> split(const string& s, char delim) {
+    vector<string> elems;
+    stringstream ss(s);
+    string item;
+
+    while (getline(ss, item, delim)) {
+        if (!item.empty()) {
+            elems.push_back(item);
+        }
+    }
+
+    return elems;
+}
 
 //--------------------------------------------------------------
 void ofApp::setup(){
     ofBackground(64); // 背景色を設定
     ofSetFrameRate(60); // フレームレートを設定
     ofSetWindowTitle("Art_Project"); // ウィンドウタイトルを設定
+    ofSetCircleResolution(64); // 円の解像度を設定
 
     /* ==============================
        GUI
     ============================== */
+
+    // colorの初期値、最小値、最大値を設定
+    ofColor initColor = ofColor(255, 255, 255, 255);
+    ofColor minColor = ofColor(0, 0, 0, 0);
+    ofColor maxColor = ofColor(255, 255, 255, 255);
+
     gui.setup(); // GUI設定
-    gui.add(button.setup("send OSC")); // ボタン追加
-    button.addListener(this, &ofApp::buttonPressed); // イベントリスナー追加
+    gui.add(oscSend.setup("OSC Send")); // ボタン追加
+    gui.add(oscTest.setup("OSC Test", false)); // トグルボタン追加
+    gui.add(color.setup("color", initColor, minColor, maxColor)); // 色スライダ追加
+    oscSend.addListener(this, &ofApp::oscSendPressed); // イベントリスナー追加
+    oscTest.addListener(this, &ofApp::oscTestPressed); // イベントリスナー追加
 
     /* ==============================
        OSC
@@ -50,6 +81,8 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    ofSetColor(color); // 色を設定
+    ofCircle(ofGetWidth() / 2, ofGetHeight() / 2, 200); // 円を描画
 
     /* ==============================
        GUI
@@ -137,14 +170,37 @@ void ofApp::sendOSC() {
 
 //--------------------------------------------------------------
 /* ボタンが押されたとき */
-void ofApp::buttonPressed() {
+void ofApp::oscSendPressed() {
+    vector<string> colorResult = split(color.getParameter().toString(), ','); // colorを配列に変換
 
     // 値を設定
     message.mode1 = 1;
-    message.number -> push_back(0);
-    message.color[0] = 255;
-    message.color[1] = 255;
-    message.color[2] = 255;
+    message.number -> push_back(100);
+    message.color[0] = stoi(colorResult[0]);
+    message.color[1] = stoi(colorResult[1]);
+    message.color[2] = stoi(colorResult[2]);
+
+    sendOSC(); // OSCを送信
+}
+
+//--------------------------------------------------------------
+/* トグルボタンが押されたとき */
+void ofApp::oscTestPressed(bool &value) {
+    vector<string> colorResult = split(color.getParameter().toString(), ','); // colorを配列に変換
+
+    // 値を設定
+    message.mode1 = 1;
+    message.number -> push_back(100);
+
+    if (value) {
+        message.color[0] = stoi(colorResult[0]);
+        message.color[1] = stoi(colorResult[1]);
+        message.color[2] = stoi(colorResult[2]);
+    } else {
+        message.color[0] = 0;
+        message.color[1] = 0;
+        message.color[2] = 0;
+    }
 
     sendOSC(); // OSCを送信
 }
@@ -153,5 +209,5 @@ void ofApp::buttonPressed() {
 /* ログ出力 */
 void ofApp::LOG(string category, ofxOscMessage message) {
     string text = "[" + category + "] ";
-    std::cout << text << message << endl;
+    cout << text << message << endl;
 }

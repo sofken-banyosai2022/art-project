@@ -31,8 +31,11 @@ public:
 
 	/* GUI */
 	ofxPanel gui;						// パネル
-	ofxButton button;					// ボタン
-	void buttonPressed();				// ボタンが押されたとき
+	ofxButton oscSend;					// ボタン
+	ofxToggle oscTest;					// トグルボタン
+	ofxColorSlider color;				// 色スライダ
+	void oscSendPressed();				// ボタンが押されたとき
+	void oscTestPressed(bool &value);	// トグルボタンが押されたとき
 
 	/* OSC */
 	ofxOscReceiver receiver;			// 受信機
