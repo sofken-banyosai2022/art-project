@@ -1,7 +1,4 @@
 ﻿#include <Windows.h>
-#include <vector>
-#include <string>
-#include <sstream>
 #include "ofApp.h"
 
 using namespace std;
@@ -24,10 +21,10 @@ vector<string> split(const string& s, char delim) {
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    ofBackground(64); // 背景色を設定
-    ofSetFrameRate(60); // フレームレートを設定
-    ofSetWindowTitle("Art_Project"); // ウィンドウタイトルを設定
-    ofSetCircleResolution(64); // 円の解像度を設定
+    ofBackground(64);                       // 背景色を設定
+    ofSetFrameRate(60);                     // フレームレートを設定
+    ofSetWindowTitle("Art_Project");        // ウィンドウタイトルを設定
+    ofSetCircleResolution(64);              // 円の解像度を設定
 
     /* ==============================
        GUI
@@ -38,18 +35,22 @@ void ofApp::setup(){
     ofColor minColor = ofColor(0, 0, 0, 0);
     ofColor maxColor = ofColor(255, 255, 255, 255);
 
-    gui.setup(); // GUI設定
-    gui.add(oscSend.setup("OSC Send")); // ボタン追加
-    gui.add(oscTest.setup("OSC Test", false)); // トグルボタン追加
-    gui.add(color.setup("color", initColor, minColor, maxColor)); // 色スライダ追加
-    oscSend.addListener(this, &ofApp::oscSendPressed); // イベントリスナー追加
-    oscTest.addListener(this, &ofApp::oscTestPressed); // イベントリスナー追加
+    gui.setup();                                                    // GUI設定
+    gui.add(oscSend.setup("OSC Send"));                             // ボタン追加
+    gui.add(oscTest.setup("OSC Test", false));                      // トグルボタン追加
+    gui.add(color.setup("color", initColor, minColor, maxColor));   // 色スライダ追加
+    oscSend.addListener(this, &ofApp::oscSendPressed);              // イベントリスナー追加
 
     /* ==============================
        OSC
     ============================== */
     receiver.setup(PORT);     // 受信機を設定
     sender.setup(HOST, PORT); // 送信機を設定
+
+    /* ==============================
+       Other
+    ============================== */
+    oscTestType = true;
 }
 
 //--------------------------------------------------------------
@@ -65,7 +66,7 @@ void ofApp::update(){
         // 次のメッセージを取得
         ofxOscMessage m;
         receiver.getNextMessage(m);
-        LOG("OSC", m); // ログ出力
+        LOG("OSC Receive", m); // ログ出力
 
         // アドレス分岐処理
         if (m.getAddress() == "/mouse/button") {
@@ -77,8 +78,34 @@ void ofApp::update(){
             }
         }
     }
-}
 
+    /* ==============================
+       Other
+    ============================== */
+
+    // oscTestがTrueのとき1秒ごとに実行
+    if (oscTest && ofGetFrameNum() % 60 == 0) {
+        vector<string> colorResult = split(color.getParameter().toString(), ','); // colorを配列に変換
+
+        // 値を設定
+        message.mode1 = 1;
+        message.number -> push_back(100);
+
+        if (oscTestType) {
+            message.color[0] = stoi(colorResult[0]);
+            message.color[1] = stoi(colorResult[1]);
+            message.color[2] = stoi(colorResult[2]);
+        }
+        else {
+            message.color[0] = 0;
+            message.color[1] = 0;
+            message.color[2] = 0;
+        }
+
+        oscTestType = !oscTestType; // oscTestTypeを反転
+        sendOSC(); // OSCを送信
+    }
+}
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofSetColor(color); // 色を設定
@@ -165,7 +192,7 @@ void ofApp::sendOSC() {
 
     sender.sendMessage(m);                      // OSCメッセージを送信
     message.number -> clear();                  // 要素を全て削除
-    LOG("OSC", m);                              // ログ出力
+    LOG("OSC Send", m);                         // ログ出力
 }
 
 //--------------------------------------------------------------
@@ -179,28 +206,6 @@ void ofApp::oscSendPressed() {
     message.color[0] = stoi(colorResult[0]);
     message.color[1] = stoi(colorResult[1]);
     message.color[2] = stoi(colorResult[2]);
-
-    sendOSC(); // OSCを送信
-}
-
-//--------------------------------------------------------------
-/* トグルボタンが押されたとき */
-void ofApp::oscTestPressed(bool &value) {
-    vector<string> colorResult = split(color.getParameter().toString(), ','); // colorを配列に変換
-
-    // 値を設定
-    message.mode1 = 1;
-    message.number -> push_back(100);
-
-    if (value) {
-        message.color[0] = stoi(colorResult[0]);
-        message.color[1] = stoi(colorResult[1]);
-        message.color[2] = stoi(colorResult[2]);
-    } else {
-        message.color[0] = 0;
-        message.color[1] = 0;
-        message.color[2] = 0;
-    }
 
     sendOSC(); // OSCを送信
 }

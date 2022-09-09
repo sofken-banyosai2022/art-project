@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
+#include <sstream>
 #include "ofMain.h"
 #include "ofxGui.h"
 #include "ofxOsc.h"
@@ -34,8 +36,8 @@ public:
 	ofxButton oscSend;					// ボタン
 	ofxToggle oscTest;					// トグルボタン
 	ofxColorSlider color;				// 色スライダ
+	bool oscTestType;					// OscTestにおいてLEDがON or OFF
 	void oscSendPressed();				// ボタンが押されたとき
-	void oscTestPressed(bool &value);	// トグルボタンが押されたとき
 
 	/* OSC */
 	ofxOscReceiver receiver;			// 受信機
