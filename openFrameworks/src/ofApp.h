@@ -51,5 +51,6 @@ public:
 	void sendOSC();						// OSC送信
 
 	/* Other */
+	ofJson settings;							// 設定ファイル
 	void LOG(string category, ofxOscMessage m); // ログ出力
 };

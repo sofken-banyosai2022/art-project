@@ -27,6 +27,15 @@ void ofApp::setup(){
     ofSetCircleResolution(64);              // 円の解像度を設定
 
     /* ==============================
+       File
+    ============================== */
+    ofFile file("settings.json");           // JSONファイルを開く
+
+    if (file.exists()) {                    // JSONファイルが存在する場合
+        file >> settings;
+    }
+
+    /* ==============================
        GUI
     ============================== */
 
@@ -68,14 +77,15 @@ void ofApp::update(){
         receiver.getNextMessage(m);
         LOG("OSC Receive", m); // ログ出力
 
-        // アドレス分岐処理
-        if (m.getAddress() == "/mouse/button") {
+        if (m.getAddress() == "/unity/bgm/play") {        // BGMを再生
 
-            if (m.getArgAsString(0) == "up") {
+            ShellExecute(NULL,"open", settings["bgm"][m.getArgAsInt(0) - 1.0]["path"].dump().c_str(), NULL, NULL, SW_SHOWNORMAL);
 
-                // ソフトを起動し、音源再生
-                ShellExecute(NULL, "open", "filePath", NULL, NULL, SW_SHOWNORMAL);
-            }
+        } else if (m.getAddress() == "/unity/bgm/stop") { // BGMを停止
+
+            HWND handle = FindWindow("MPC-BE", NULL);
+            PostMessage(handle, WM_CLOSE, 0, 0);
+
         }
     }
 
