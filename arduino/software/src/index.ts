@@ -24,7 +24,8 @@ const outputFile = (fileName: string, fileData: string): void => {
 const compileFile = (type: string, fileData: string, number: number): string => {
   let compileData: string = fileData;
 
-  if (type === 'main') { // main.ino
+  if (type === 'main1') { // main1.ino
+    compileData = compileData.replace(/MAIN2_MAC/g, String(unitsJSON.main_units[0].mac));
     compileData = compileData.replace(/WiFi_SSID/g, String(process.env.WiFi_SSID));
     compileData = compileData.replace(/WiFi_PASSWORD/g, String(process.env.WiFi_PASSWORD));
     compileData = compileData.replace(/IP_ADDRESS_IP/g, String(process.env.IP_ADDRESS_IP));
@@ -32,7 +33,7 @@ const compileFile = (type: string, fileData: string, number: number): string => 
     compileData = compileData.replace(/IP_ADDRESS_SUBNET/g, String(process.env.IP_ADDRESS_SUBNET));
     compileData = compileData.replace(/OSC_HOST/g, String(process.env.OSC_HOST));
     compileData = compileData.replace(/OSC_PORT/g, String(process.env.OSC_PORT));
-  } else { // sub.ino
+  } else if (type === 'sub')  { // sub.ino
     compileData = compileData.replace(/UNIT_NUMBER/g, String(unitsJSON.units[number].number));
   }
 
@@ -42,15 +43,27 @@ const compileFile = (type: string, fileData: string, number: number): string => 
 /* Read file */
 
 // main.ino
-fs.readFile('./src/main.ino', 'utf-8', (err, fileData) => {
+fs.readFile('./src/main1.ino', 'utf-8', (err, fileData) => {
   let compileData: string = '';
 
   if (err) throw err;
 
-  compileData = compileFile('main', fileData, 0);
-  outputFile('main', compileData);
+  compileData = compileFile('main1', fileData, 0);
+  outputFile('main1', compileData);
 
-  console.log('Completed main.ino!');
+  console.log('Completed main1.ino!');
+});
+
+// main2.ino
+fs.readFile('./src/main2.ino', 'utf-8', (err, fileData) => {
+  let compileData: string = '';
+
+  if (err) throw err;
+
+  compileData = compileFile('main2', fileData, 0);
+  outputFile('main2', compileData);
+
+  console.log('Completed main2.ino!');
 });
 
 // sub.ino

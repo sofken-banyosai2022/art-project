@@ -12,6 +12,7 @@ typedef struct struct_message {
 /* Global variables */
 struct_message myData;                                          // データ
 uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // ブロードキャスト用MACアドレス
+uint8_t main2_mac[] = MAIN2_MAC;          // main2のMACアドレス
 
 // Wi-Fi
 const char* ssid = WiFi_SSID;
@@ -48,7 +49,7 @@ void setupEspNow() {
   // ESP-NOWの設定
   esp_now_set_self_role(ESP_NOW_ROLE_CONTROLLER);                   // 自分の役割を設定  
   esp_now_register_send_cb(OnDataSent);                             // 送信完了時のイベントを登録
-  esp_now_add_peer(broadcast_mac, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);  // デバイスを登録
+  esp_now_add_peer(main2_mac, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);      // デバイスを登録
 }
 
 /* OSCのSetup */
@@ -85,7 +86,7 @@ void setupOSC() {
       }
 
       // ESP-NOWでデータを送信
-      esp_now_send(broadcast_mac, (uint8_t *) &myData, sizeof(myData));
+      esp_now_send(main2_mac, (uint8_t *) &myData, sizeof(myData));
     }
   );
 }
