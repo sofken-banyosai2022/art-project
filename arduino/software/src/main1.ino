@@ -24,7 +24,6 @@ IPAddress gateway(IP_ADDRESS_GATEWAY);
 IPAddress subnet(IP_ADDRESS_SUBNET);
 
 // OSC
-const char* host = OSC_HOST;
 const int port = OSC_PORT;
 
 /* データ送信時のコールバック関数 */

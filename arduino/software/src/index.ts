@@ -31,7 +31,6 @@ const compileFile = (type: string, fileData: string, number: number): string => 
     compileData = compileData.replace(/IP_ADDRESS_IP/g, String(process.env.IP_ADDRESS_IP));
     compileData = compileData.replace(/IP_ADDRESS_GATEWAY/g, String(process.env.IP_ADDRESS_GATEWAY));
     compileData = compileData.replace(/IP_ADDRESS_SUBNET/g, String(process.env.IP_ADDRESS_SUBNET));
-    compileData = compileData.replace(/OSC_HOST/g, String(process.env.OSC_HOST));
     compileData = compileData.replace(/OSC_PORT/g, String(process.env.OSC_PORT));
   } else if (type === 'sub')  { // sub.ino
     compileData = compileData.replace(/UNIT_NUMBER/g, String(unitsJSON.units[number].number));
