@@ -25,15 +25,18 @@ const compileFile = (type: string, fileData: string, number: number): string => 
   let compileData: string = fileData;
 
   if (type === 'main1') { // main1.ino
-    compileData = compileData.replace(/MAIN2_MAC/g, String(unitsJSON.main_units[0].mac));
+    compileData = compileData.replace(/MAIN2_MAC/g, String(unitsJSON.main_units[1].mac));
     compileData = compileData.replace(/WiFi_SSID/g, String(process.env.WiFi_SSID));
     compileData = compileData.replace(/WiFi_PASSWORD/g, String(process.env.WiFi_PASSWORD));
     compileData = compileData.replace(/IP_ADDRESS_IP/g, String(process.env.IP_ADDRESS_IP));
     compileData = compileData.replace(/IP_ADDRESS_GATEWAY/g, String(process.env.IP_ADDRESS_GATEWAY));
     compileData = compileData.replace(/IP_ADDRESS_SUBNET/g, String(process.env.IP_ADDRESS_SUBNET));
     compileData = compileData.replace(/OSC_PORT/g, String(process.env.OSC_PORT));
+  } else if (type === 'main2')  { // main2.ino
+    compileData = compileData.replace(/SUB1_MAC/g, String(unitsJSON.units[0].mac));
   } else if (type === 'sub')  { // sub.ino
     compileData = compileData.replace(/UNIT_NUMBER/g, String(unitsJSON.units[number].number));
+    compileData = compileData.replace(/NEXT_MAC/g, String(unitsJSON.units[number + 1].mac));
   }
 
   return compileData;
@@ -72,7 +75,7 @@ fs.readFile('./src/sub.ino', 'utf-8', (err, fileData) => {
   if (err) throw err;
 
   // loop the number of units
-  for (let i = 0; i < unitsLength; i++) {
+  for (let i = 0; i < unitsLength - 1; i++) {
     compileData = compileFile('sub', fileData, i);
     outputFile(`sub_${i + 1}`, compileData);
   }

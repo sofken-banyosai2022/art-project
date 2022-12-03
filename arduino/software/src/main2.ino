@@ -6,26 +6,22 @@ typedef struct struct_message {
   int mode1;      // 送信モードを指定
   int number[10]; // 送信するユニットを指定
   int color[3];   // 送信する色を指定
+  int mode2;      // 遅延時間を指定
 } struct_message;
 
 /* Global variables */
 struct_message myData;    // データ
-uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // ブロードキャスト用MACアドレス
+uint8_t broadcastMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // ブロードキャスト用MACアドレス
+uint8_t sub1Mac[] = SUB1_MAC;                                  // sub1のMACアドレス
 
-/* ESP-NOWのSetup */
-void setupEspNow() {
+/* データ送信時のコールバック関数 */
+void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
-  // ESP-NOWを初期化
-  if (esp_now_init() != 0) {
-    Serial.println("Error initializing ESP-NOW");
-    ESP.restart(); // リスタート
-    return;
+  if (sendStatus == 0) {
+    Serial.println("[ESP-NOW] Delivery success");
+  } else{
+    Serial.println("[ESP-NOW] Delivery fail");
   }
-
-  // ESP-NOWの設定
-  esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);  // 自分の役割を設定
-  esp_now_register_recv_cb(OnDataRecv);       // 受信完了時のイベントを登録
-  esp_now_add_peer(broadcast_mac, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);  // デバイスを登録
 }
 
 /* データ受信時のコールバック関数 */
@@ -61,6 +57,33 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   }
 
   Serial.println("");
+
+  // mode2
+  Serial.print("mode2: "); Serial.println(myData.mode2);
+
+  // 送信先を判別
+  if (myData.number[0] == 100) { // デイジーチェーン
+    esp_now_send(sub1Mac, (uint8_t *) &myData, sizeof(myData));      // ESP-NOWでデータを送信
+  } else { // ユニット番号, ブロードキャスト
+    esp_now_send(broadcastMac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信 (broadcast)
+  }
+}
+
+/* ESP-NOWのSetup */
+void setupEspNow() {
+
+  // ESP-NOWを初期化
+  if (esp_now_init() != 0) {
+    Serial.println("Error initializing ESP-NOW");
+    ESP.restart(); // リスタート
+    return;
+  }
+
+  // ESP-NOWの設定
+  esp_now_set_self_role(ESP_NOW_ROLE_COMBO);                       // 自分の役割を設定
+  esp_now_add_peer(sub1Mac, ESP_NOW_ROLE_COMBO, 1, NULL, 0);       // デバイスを登録
+  esp_now_register_send_cb(OnDataSent);                            // 送信完了時のイベントを登録
+  esp_now_register_recv_cb(OnDataRecv);                            // 受信完了時のイベントを登録
 }
 
 void setup() {

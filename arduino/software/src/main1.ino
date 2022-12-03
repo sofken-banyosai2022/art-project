@@ -7,12 +7,12 @@ typedef struct struct_message {
   int mode1;      // 送信モードを指定
   int number[10]; // 送信するユニットを指定
   int color[3];   // 送信する色を指定
+  int mode2;      // 遅延時間を指定
 } struct_message;
 
 /* Global variables */
-struct_message myData;                                          // データ
-uint8_t broadcast_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // ブロードキャスト用MACアドレス
-uint8_t main2_mac[] = MAIN2_MAC;          // main2のMACアドレス
+struct_message myData;                                         // データ
+uint8_t main2Mac[] = MAIN2_MAC;                                // main2のMACアドレス
 
 // Wi-Fi
 const char* ssid = WiFi_SSID;
@@ -42,13 +42,14 @@ void setupEspNow() {
   // ESP-NOWを初期化
   if (esp_now_init() != 0) {
     Serial.println("Error initializing ESP-NOW");
+    ESP.restart(); // リスタート
     return;
   }
 
   // ESP-NOWの設定
   esp_now_set_self_role(ESP_NOW_ROLE_CONTROLLER);                   // 自分の役割を設定  
   esp_now_register_send_cb(OnDataSent);                             // 送信完了時のイベントを登録
-  esp_now_add_peer(main2_mac, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);      // デバイスを登録
+  esp_now_add_peer(main2Mac, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);       // デバイスを登録
 }
 
 /* OSCのSetup */
@@ -70,7 +71,7 @@ void setupOSC() {
 
       // number
       numberLength = m.arg<int>(1);
-      memset(myData.number, 0, sizeof(myData.number)); // myData.number配列を初期化
+      memset(myData.number, 0, sizeof(myData.number));               // myData.number配列を初期化
       Serial.print("numberLength: "); Serial.println(m.arg<int>(1)); // ログ出力
 
       for (i = 0; i < numberLength; i++) {
@@ -84,8 +85,12 @@ void setupOSC() {
         Serial.print("color: "); Serial.println(m.arg<int>(2 + numberLength + i)); // ログ出力
       }
 
+      // mode2
+      myData.mode2 = m.arg<int>(5 + numberLength);
+      Serial.print("mode2: "); Serial.println(m.arg<int>(5 + numberLength)); // ログ出力
+
       // ESP-NOWでデータを送信
-      esp_now_send(main2_mac, (uint8_t *) &myData, sizeof(myData));
+      esp_now_send(main2Mac, (uint8_t *) &myData, sizeof(myData));
     }
   );
 }
