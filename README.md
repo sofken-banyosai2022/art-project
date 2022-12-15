@@ -61,7 +61,3 @@ npm run build
 ### LED Controller
 
 1. Move files in `ledController` to `src` of openframeworks project.
-
-## Production
-
-`production` contains the production application.
