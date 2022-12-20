@@ -4,7 +4,15 @@
 
 ## Description
 
-Interactive Art Using a Microcomputers
+Interactive art using microcomputers
+
+- Arduino Software
+
+  The software to generate programs to write to Arduino.
+
+- LED Controller
+  
+  The main software that controls LEDs.
 
 ## How to Use
 
@@ -60,4 +68,4 @@ npm run build
 
 ### LED Controller
 
-1. Move files in `ledController` to `src` of openframeworks project.
+1. Move files in `ledController` to openframeworks project.
