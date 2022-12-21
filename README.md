@@ -14,6 +14,10 @@ Interactive art using microcomputers
   
   The main software that controls LEDs.
 
+- Music Player
+  
+  The software that plays music based on signals sent from the LED Controller.
+
 ## How to Use
 
 ### Arduino Software
@@ -69,3 +73,7 @@ npm run build
 ### LED Controller
 
 1. Move files in `ledController` to openframeworks project.
+
+### Music Player
+
+1. Move files in `musicPlayer` to openframeworks project.
