@@ -1,10 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <math.h>
 #include "ofMain.h"
 #include "ofxGui.h"
 #include "ofxOsc.h"
@@ -42,10 +37,13 @@ class ofApp : public ofBaseApp{
 		void sendOsc(); // osc送信
 
 		/* ofxGui */
+
+		// 設定
 		ofxPanel gui;
 		ofxLabel oscSettingsLabel; // osc settings label
 		ofxTextField ipAddress; // 送信先のip address
-		ofxIntField port; // oscポート番号
+		ofxIntField mainPort; // LED Controller側のoscポート番号
+		ofxIntField subPort; // Music Player側のoscポート番号
 		ofxToggle oscTest; // osc送信テストボタン
 		ofxIntSlider interval; // OscTestの送信間隔
 		bool oscTestType = true; // OscTestにおいてLED状態を判定
@@ -55,10 +53,20 @@ class ofApp : public ofBaseApp{
 		ofxColorSlider color; // colorスライダ
 
 		void onIpAddressChanged(string& ipAddress); // ip addressを変更
-		void onPortChanged(int& port); // portを変更
+		void onMainPortChanged(int& data); // mainPortを変更
+		void onSubPortChanged(int& data); // subPortを変更
 		void onNumberChanged(string& number); // numberを変更
 
+		// シーン
+		ofxPanel sceneGui;
+		ofxButton scene01; // シーン01ボタン
+
+		void sendToMusicPlayer(int sceneNumber, int bpm); // Music Playerに送信
+		void startScene01(); // シーン01を開始
+
 		/* other */
+		const int OF_KEY_SPACE = 32; // スペースキー
+
 		vector<string> split(const string& s, char delim); // 文字列を特定文字で分割
 		void getMidiData(int knob, int value); // midiデータを取得
 };

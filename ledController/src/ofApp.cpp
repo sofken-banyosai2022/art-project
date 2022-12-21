@@ -1,16 +1,17 @@
-#include <iostream>
 #include "ofApp.h"
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	ofSetVerticalSync(true); // 垂直同期を適用
+	ofSetFrameRate(60); // フレームレートを設定
 	ofSetWindowTitle("LED Controller"); // ウィンドウタイトルを設定
 	ofBackground(0, 0, 0); // 背景色を黒に設定
 
 	/* イベントリスナー */
 	ipAddress.addListener(this, &ofApp::onIpAddressChanged); // ip addressのイベントリスナーを追加
-	port.addListener(this, &ofApp::onPortChanged); // portのイベントリスナーを追加
+	mainPort.addListener(this, &ofApp::onMainPortChanged); // mainPortのイベントリスナーを追加
+	subPort.addListener(this, &ofApp::onSubPortChanged); // subPortのイベントリスナーを追加
 	number.addListener(this, &ofApp::onNumberChanged); // numberのイベントリスナーを追加
+	scene01.addListener(this, &ofApp::startScene01); // scene01のイベントリスナーを追加
 
 	/* ofxGui */
 
@@ -19,10 +20,12 @@ void ofApp::setup(){
 	ofColor minColor = ofColor(0, 0, 0, 0);
 	ofColor maxColor = ofColor(255, 255, 255, 255);
 
-	gui.setup(); // GUIを設定
+	// 設定
+	gui.setup("Settings", "settings"); // GUIを設定
 	gui.add(oscSettingsLabel.setup("OSC Settings", "")); // osc settings label
 	gui.add(ipAddress.setup("IP address", "127.0.0.1")); // 送信先のip address
-	gui.add(port.setup("port", 12345, 0, 65535)); // oscポート番号
+	gui.add(mainPort.setup("main port", 12345, 0, 65535)); // oscポート番号
+	gui.add(subPort.setup("sub port", 12346, 0, 65535)); // oscポート番号
 	gui.add(interval.setup("interval", 1, 1, 10)); // OscTestの送信間隔
 	gui.add(oscTest.setup("OSC Test", false)); // osc送信テストボタン
 
@@ -32,9 +35,13 @@ void ofApp::setup(){
 	gui.add(color.setup("color", initColor, minColor, maxColor)); // colorスライダ
 	gui.add(message.mode2.setup("mode2", 100, 0, 255)); // 遅延時間を指定
 
+    // シーン
+	sceneGui.setup("Scene", "scene", 230.0f); // GUIを設定
+	sceneGui.add(scene01.setup("scene 01")); // シーン01ボタン
+
 	/* ofxOsc */
-	receiver.setup(port); // receiverを設定
-	sender.setup(ipAddress, port); // senderを設定
+	receiver.setup(subPort); // receiverを設定
+	sender.setup(ipAddress, mainPort); // senderを設定
 }
 
 //--------------------------------------------------------------
@@ -42,12 +49,17 @@ void ofApp::setup(){
 
 // IP addressを変更
 void ofApp::onIpAddressChanged(string& ipAddress) {
-	sender.setup(ipAddress, port); // senderを設定
+	sender.setup(ipAddress, mainPort); // senderを設定
 }
 
-// portを変更
-void ofApp::onPortChanged(int& port) {
-	sender.setup(ipAddress, port); // senderを設定
+// mainPortを変更
+void ofApp::onMainPortChanged(int& data) {
+	sender.setup(ipAddress, mainPort); // senderを設定
+}
+
+// subPortを変更
+void ofApp::onSubPortChanged(int& data) {
+	receiver.setup(subPort); // receiverを設定
 }
 
 // numberを変更
@@ -59,6 +71,12 @@ void ofApp::onNumberChanged(string& number) {
 	for (size_t i = 0; i < numberResult.size(); i++) {
 		message.number -> push_back(stoi(numberResult[i]));
 	}
+}
+
+// シーン
+// scene01を開始
+void ofApp::startScene01() {
+	sendToMusicPlayer(1, 76); // Music Playerに送信
 }
 
 //--------------------------------------------------------------
@@ -81,6 +99,20 @@ void ofApp::sendOsc() {
 	sender.sendMessage(m); // oscメッセージを送信
 	cout << "[osc send] " << m << endl; // ログ出力
 }
+
+// Music Playerに送信
+void ofApp::sendToMusicPlayer(int sceneNumber, int bpm) {
+	ofxOscMessage m; // oscメッセージ
+
+	m.setAddress("/ledc/play");  // アドレス設定
+	m.addIntArg(sceneNumber);
+	m.addIntArg(bpm);
+
+	sender.sendMessage(m); // oscメッセージを送信
+
+	cout << "[scene] start " << sceneNumber << endl; // ログ出力
+	cout << "[osc send] " << m << endl; // ログ出力
+};
 
 //--------------------------------------------------------------
 /* 文字列を特定文字で分割 */
@@ -132,7 +164,7 @@ void ofApp::update(){
 		ofxOscMessage m;
 
 		receiver.getNextMessage(m);
-		cout << "[osc receive] " << m << endl; // ログ出力
+		cout << "[osc] receive " << m << endl; // ログ出力
 
 		if (m.getAddress() == "/midi") { // midi
 			getMidiData(m.getArgAsInt(0), m.getArgAsInt(1)); // midiデータを取得
@@ -163,7 +195,8 @@ void ofApp::update(){
 void ofApp::draw(){
 
 	/* ofxGui */
-	gui.draw();
+	gui.draw(); // 設定
+	sceneGui.draw(); // シーン
 }
 
 //--------------------------------------------------------------
