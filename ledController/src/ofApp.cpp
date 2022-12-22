@@ -1,7 +1,7 @@
 #include "ofApp.h"
 
 //--------------------------------------------------------------
-void ofApp::setup(){
+void ofApp::setup() {
 	ofSetFrameRate(60); // フレームレートを設定
 	ofSetWindowTitle("LED Controller"); // ウィンドウタイトルを設定
 	ofBackground(0, 0, 0); // 背景色を黒に設定
@@ -11,7 +11,6 @@ void ofApp::setup(){
 	mainPort.addListener(this, &ofApp::onMainPortChanged); // mainPortのイベントリスナーを追加
 	subPort.addListener(this, &ofApp::onSubPortChanged); // subPortのイベントリスナーを追加
 	number.addListener(this, &ofApp::onNumberChanged); // numberのイベントリスナーを追加
-	scene01.addListener(this, &ofApp::startScene01); // scene01のイベントリスナーを追加
 
 	/* ofxGui */
 
@@ -35,9 +34,25 @@ void ofApp::setup(){
 	gui.add(color.setup("color", initColor, minColor, maxColor)); // colorスライダ
 	gui.add(message.mode2.setup("mode2", 100, 0, 255)); // 遅延時間を指定
 
-    // シーン
+	/* シーン */
 	sceneGui.setup("Scene", "scene", 230.0f); // GUIを設定
-	sceneGui.add(scene01.setup("scene 01")); // シーン01ボタン
+
+	// sceneGuiにボタンを追加
+	for (size_t i = 0; i < MAX_SCENE; i++) {
+		sceneGui.add(scene[i].setup("scene " + to_string(i + 1)));
+	}
+
+	// イベントリスナーを追加
+	scene[0].addListener(this, &ofApp::startScene1);
+	scene[1].addListener(this, &ofApp::startScene2);
+	scene[2].addListener(this, &ofApp::startScene3);
+	scene[3].addListener(this, &ofApp::startScene4);
+	scene[4].addListener(this, &ofApp::startScene5);
+	scene[5].addListener(this, &ofApp::startScene6);
+	scene[6].addListener(this, &ofApp::startScene7);
+	scene[7].addListener(this, &ofApp::startScene8);
+	scene[8].addListener(this, &ofApp::startScene9);
+	scene[9].addListener(this, &ofApp::startScene10);
 
 	/* ofxOsc */
 	receiver.setup(subPort); // receiverを設定
@@ -73,10 +88,36 @@ void ofApp::onNumberChanged(string& number) {
 	}
 }
 
-// シーン
-// scene01を開始
-void ofApp::startScene01() {
-	sendToMusicPlayer(1, 76); // Music Playerに送信
+// シーンを開始
+void ofApp::startScene1() {
+	sendToMusicPlayer(1); // Music Playerに送信
+}
+void ofApp::startScene2() {
+	sendToMusicPlayer(2); // Music Playerに送信
+}
+void ofApp::startScene3() {
+	sendToMusicPlayer(3); // Music Playerに送信
+}
+void ofApp::startScene4() {
+	sendToMusicPlayer(4); // Music Playerに送信
+}
+void ofApp::startScene5() {
+	sendToMusicPlayer(5); // Music Playerに送信
+}
+void ofApp::startScene6() {
+	sendToMusicPlayer(6); // Music Playerに送信
+}
+void ofApp::startScene7() {
+	sendToMusicPlayer(7); // Music Playerに送信
+}
+void ofApp::startScene8() {
+	sendToMusicPlayer(8); // Music Playerに送信
+}
+void ofApp::startScene9() {
+	sendToMusicPlayer(9); // Music Playerに送信
+}
+void ofApp::startScene10() {
+	sendToMusicPlayer(10); // Music Playerに送信
 }
 
 //--------------------------------------------------------------
@@ -89,7 +130,7 @@ void ofApp::sendOsc() {
 	m.addIntArg(message.mode1);
 	m.addIntArg(length);
 
-	for (size_t i = 0; i < length; i++) m.addIntArg(message.number -> at(i));
+	for (size_t i = 0; i < length; i++) m.addIntArg(message.number->at(i));
 
 	m.addIntArg(message.color[0]);
 	m.addIntArg(message.color[1]);
@@ -97,21 +138,20 @@ void ofApp::sendOsc() {
 	m.addIntArg(message.mode2);
 
 	sender.sendMessage(m); // oscメッセージを送信
-	cout << "[osc send] " << m << endl; // ログ出力
+	cout << "[osc] send " << m << endl; // ログ出力
 }
 
 // Music Playerに送信
-void ofApp::sendToMusicPlayer(int sceneNumber, int bpm) {
+void ofApp::sendToMusicPlayer(int sceneNumber) {
 	ofxOscMessage m; // oscメッセージ
 
 	m.setAddress("/ledc/play");  // アドレス設定
 	m.addIntArg(sceneNumber);
-	m.addIntArg(bpm);
 
 	sender.sendMessage(m); // oscメッセージを送信
 
 	cout << "[scene] start " << sceneNumber << endl; // ログ出力
-	cout << "[osc send] " << m << endl; // ログ出力
+	cout << "[osc] send " << m << endl; // ログ出力
 };
 
 //--------------------------------------------------------------
@@ -138,26 +178,26 @@ void ofApp::getMidiData(int knob, int value) {
 	if (adjustedValue % 15 != 0) return; // 送信数を減らす
 
 	switch (knob) { // ノブ番号
-		case 0:
-		case 1:
-		case 2:
-			message.color[knob] = adjustedValue;
-			break;
-		case 3:
-			message.color[0] = adjustedValue;
-			message.color[1] = adjustedValue;
-			message.color[2] = adjustedValue;
-			break;
-		default:
-			cout << "[getMidiData] 設定されていない動作です" << endl; // ログ出力
-			return;
+	case 0:
+	case 1:
+	case 2:
+		message.color[knob] = adjustedValue;
+		break;
+	case 3:
+		message.color[0] = adjustedValue;
+		message.color[1] = adjustedValue;
+		message.color[2] = adjustedValue;
+		break;
+	default:
+		cout << "[getMidiData] 設定されていない動作です" << endl; // ログ出力
+		return;
 	}
 
 	sendOsc(); // oscを送信
 }
 
 //--------------------------------------------------------------
-void ofApp::update(){
+void ofApp::update() {
 
 	/* osc */
 	while (receiver.hasWaitingMessages()) { // メッセージが送られてくるまで待機
@@ -192,7 +232,7 @@ void ofApp::update(){
 }
 
 //--------------------------------------------------------------
-void ofApp::draw(){
+void ofApp::draw() {
 
 	/* ofxGui */
 	gui.draw(); // 設定
@@ -200,56 +240,56 @@ void ofApp::draw(){
 }
 
 //--------------------------------------------------------------
-void ofApp::keyPressed(int key){
+void ofApp::keyPressed(int key) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::keyReleased(int key){
+void ofApp::keyReleased(int key) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
+void ofApp::mouseMoved(int x, int y) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button){
+void ofApp::mouseDragged(int x, int y, int button) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
+void ofApp::mousePressed(int x, int y, int button) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button){
+void ofApp::mouseReleased(int x, int y, int button) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y){
+void ofApp::mouseEntered(int x, int y) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
+void ofApp::mouseExited(int x, int y) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
+void ofApp::windowResized(int w, int h) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
+void ofApp::gotMessage(ofMessage msg) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
+void ofApp::dragEvent(ofDragInfo dragInfo) {
 
 }

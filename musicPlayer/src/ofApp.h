@@ -55,6 +55,8 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		void exit();
 
+		static const int OF_KEY_SPACE = 32; // スペースキー
+
 		/* ofxOsc */
 		ofxOscReceiver receiver; // oscメッセージreceiver
 
@@ -68,9 +70,9 @@ class ofApp : public ofBaseApp{
 		void onIpAddressChanged(string &data); // ip addressを変更
 		void onMainPortChanged(int &data); // mainPortを変更
 		void onSubPortChanged(int& data); // subPortを変更
-		void startScene(int sceneNumber, int bpm); // シーンを開始
+		void startScene(int sceneNumber); // シーンを開始
 
 		/* other */
-		const int OF_KEY_SPACE = 32; // スペースキー
+		ofJson soundList; // 音源リスト
 		Scheduler output; // bpmに従って信号を出力
 };
