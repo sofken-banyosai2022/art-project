@@ -4,6 +4,7 @@
 void ofApp::setup() {
 	ofSetFrameRate(60); // フレームレートを設定
 	ofSetWindowTitle("LED Controller"); // ウィンドウタイトルを設定
+	ofSetCircleResolution(32); // 円の角数を設定
 	ofBackground(0, 0, 0); // 背景色を黒に設定
 
 	/* イベントリスナー */
@@ -130,7 +131,7 @@ void ofApp::sendOsc() {
 	m.addIntArg(message.mode1);
 	m.addIntArg(length);
 
-	for (size_t i = 0; i < length; i++) m.addIntArg(message.number->at(i));
+	for (size_t i = 0; i < length; i++) m.addIntArg(message.number -> at(i));
 
 	m.addIntArg(message.color[0]);
 	m.addIntArg(message.color[1]);
@@ -139,20 +140,12 @@ void ofApp::sendOsc() {
 
 	sender.sendMessage(m); // oscメッセージを送信
 	cout << "[osc] send " << m << endl; // ログ出力
+
+	// シュミレーションを実行
+	currentColor[0] = message.color[0];
+	currentColor[1] = message.color[1];
+	currentColor[2] = message.color[2];
 }
-
-// Music Playerに送信
-void ofApp::sendToMusicPlayer(int sceneNumber) {
-	ofxOscMessage m; // oscメッセージ
-
-	m.setAddress("/ledc/play");  // アドレス設定
-	m.addIntArg(sceneNumber);
-
-	sender.sendMessage(m); // oscメッセージを送信
-
-	cout << "[scene] start " << sceneNumber << endl; // ログ出力
-	cout << "[osc] send " << m << endl; // ログ出力
-};
 
 //--------------------------------------------------------------
 /* 文字列を特定文字で分割 */
@@ -168,6 +161,40 @@ vector<string> ofApp::split(const string& s, char delim) {
 	}
 
 	return elems;
+}
+
+//--------------------------------------------------------------
+/* music Playerに送信 */
+void ofApp::sendToMusicPlayer(int sceneNumber) {
+	ofxOscMessage m; // oscメッセージ
+
+	m.setAddress("/ledc/play");  // アドレス設定
+	m.addIntArg(sceneNumber);
+
+	sender.sendMessage(m); // oscメッセージを送信
+
+	cout << "[scene] start " << sceneNumber << endl; // ログ出力
+	cout << "[osc] send " << m << endl; // ログ出力
+};
+
+//--------------------------------------------------------------
+/* music playerデータを取得 */
+void ofApp::getMusicPlayerData(int beat) {
+	srand(time(NULL)); // 初期化
+
+	if (musicPlayerType) {
+		message.color[0] = rand() % 246 + 10;
+		message.color[1] = rand() % 246 + 10;
+		message.color[2] = rand() % 246 + 10;
+	}
+	else {
+		message.color[0] = 0;
+		message.color[1] = 0;
+		message.color[2] = 0;
+	}
+
+	musicPlayerType = !musicPlayerType; // musicPlayerTypeを反転
+	sendOsc(); // oscを送信
 }
 
 //--------------------------------------------------------------
@@ -208,6 +235,8 @@ void ofApp::update() {
 
 		if (m.getAddress() == "/midi") { // midi
 			getMidiData(m.getArgAsInt(0), m.getArgAsInt(1)); // midiデータを取得
+		} else if (m.getAddress() == "/mp/beat") { // music player
+			getMusicPlayerData(m.getArgAsInt(0)); // music playerデータを取得
 		}
 	}
 
@@ -237,6 +266,10 @@ void ofApp::draw() {
 	/* ofxGui */
 	gui.draw(); // 設定
 	sceneGui.draw(); // シーン
+
+	/* シミュレーション用の円を描画 */
+	ofSetColor(currentColor[0], currentColor[1], currentColor[2]);
+	ofDrawCircle(325, 350, 80); // 円の描画(中心X, 中心Y, 半径r)
 }
 
 //--------------------------------------------------------------

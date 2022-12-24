@@ -64,6 +64,7 @@ public:
 	/* シーン */
 	ofxPanel sceneGui;
 	ofxButton scene[MAX_SCENE]; // シーンボタン
+	bool musicPlayerType = true; // music playerにおいてLED状態を判定
 
 	void startScene1(); // シーン1を開始
 	void startScene2(); // シーン2を開始
@@ -78,6 +79,9 @@ public:
 	void sendToMusicPlayer(int sceneNumber); // Music Playerに送信
 
 	/* other */
+	uint8_t currentColor[3] = {0, 0, 0}; // 現在のLEDの色
+
 	vector<string> split(const string& s, char delim); // 文字列を特定文字で分割
 	void getMidiData(int knob, int value); // midiデータを取得
+	void getMusicPlayerData(int beat); // music playerデータを取得
 };
