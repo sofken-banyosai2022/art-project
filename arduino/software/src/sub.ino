@@ -108,6 +108,10 @@ void ledOn(int mode1, int color[3]) {
     analogWrite(ledPin[2], color[2]);
   } else if (mode1 == 2) { // LED演出：フェードイン・アウト
     fade(color, 1000); 
+  } else if (mode1 == 3) { // LED演出：ランダム
+    analogWrite(ledPin[0], random(10, 246));
+    analogWrite(ledPin[1], random(10, 246));
+    analogWrite(ledPin[2], random(10, 246));
   }
 }
 
@@ -144,6 +148,7 @@ void setup() {
   WiFi.disconnect(); // Wi-Fi切断
 
   // LED
+  randomSeed(analogRead(0)); // ランダム初期化
   analogWriteRange(255);
   pinMode(ledPin[0], OUTPUT);
   pinMode(ledPin[1], OUTPUT);
