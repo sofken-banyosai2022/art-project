@@ -35,7 +35,8 @@ public:
 	};
 
 	ofxOscReceiver receiver; // oscメッセージreceiver
-	ofxOscSender sender; // oscメッセージsender
+	ofxOscSender sender; // 運営側のoscメッセージsender
+	ofxOscSender ledSender; // LED側のoscメッセージsender
 	messageStruct message; // osc送信用メッセージ
 
 	void sendOsc(); // osc送信
@@ -45,7 +46,8 @@ public:
 	// 設定
 	ofxPanel gui;
 	ofxLabel oscSettingsLabel; // osc settings label
-	ofxTextField ipAddress; // 送信先のip address
+	ofxTextField ipAddress; // 運営側のip address
+	ofxTextField ledIpAddress; // LED側のip address
 	ofxIntField mainPort; // LED Controller側のoscポート番号
 	ofxIntField subPort; // Music Player側のoscポート番号
 	ofxToggle oscTest; // osc送信テストボタン
@@ -56,7 +58,8 @@ public:
 	ofxTextField number; // numberフィールド
 	ofxColorSlider color; // colorスライダ
 
-	void onIpAddressChanged(string& ipAddress); // ip addressを変更
+	void onIpAddressChanged(string& ipAddress); // 運営側のip addressを変更
+	void onLedIpAddressChanged(string& ledIpAddress); // LED側のip addressを変更
 	void onMainPortChanged(int& data); // mainPortを変更
 	void onSubPortChanged(int& data); // subPortを変更
 	void onNumberChanged(string& number); // numberを変更

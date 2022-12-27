@@ -17,7 +17,7 @@ void ofApp::setup(){
 	gui.add(mainPort.setup("main port", 12345, 0, 65535)); // oscポート番号
 	gui.add(subPort.setup("sub port", 12346, 0, 65535)); // oscポート番号
 
-	/* 音源 */
+	/* sound */
 	ofFile file("soundList.json"); // JSONファイルを開く
 
 	if (file.exists()) file >> soundList; // JSONファイル読み込み
@@ -55,15 +55,16 @@ void ofApp::onSubPortChanged(int& data) {
 
 // シーンを開始
 void ofApp::startScene(int sceneNumber) {
-	int bpm = soundList["sound"][sceneNumber - (uint64_t)1]["bpm"];
+	currentSoundNumber = sceneNumber - (uint64_t)1; // 現在再生中の音源番号
 
-	cout << "[scene] start " << sceneNumber << endl; // ログ出力
+	int bpm = soundList["sound"][currentSoundNumber]["bpm"];
 
 	ofSoundStopAll(); // 音源を停止
 	output.waitForThread(); // outputを停止
-	sound[sceneNumber - 1].play(); // 音源を再生
+	sound[currentSoundNumber].play(); // 音源を再生
 	output.setPeriodicEvent(uint64_t((60.0 / bpm) * 1000000000)); // bpmをnanosecondsに変換して設定
 	output.startThread(); // outputを開始
+	cout << "[scene] start " << sceneNumber << endl; // ログ出力
 }
 
 //--------------------------------------------------------------
@@ -78,6 +79,14 @@ void ofApp::update(){
 
 		if (m.getAddress() == "/ledc/play") {
 			startScene(m.getArgAsInt(0)); // シーンを開始
+		}
+	}
+
+	/* soundの終了検知 */
+	if (currentSoundNumber >= 0) {
+		if (!sound[currentSoundNumber].isPlaying()) {
+			output.waitForThread(); // outputを停止
+			currentSoundNumber = -1;
 		}
 	}
 }

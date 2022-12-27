@@ -8,7 +8,8 @@ void ofApp::setup() {
 	ofBackground(0, 0, 0); // 背景色を黒に設定
 
 	/* イベントリスナー */
-	ipAddress.addListener(this, &ofApp::onIpAddressChanged); // ip addressのイベントリスナーを追加
+	ipAddress.addListener(this, &ofApp::onIpAddressChanged); // 運営側のip addressのイベントリスナーを追加
+	ledIpAddress.addListener(this, &ofApp::onLedIpAddressChanged); // LED側のip addressのイベントリスナーを追加
 	mainPort.addListener(this, &ofApp::onMainPortChanged); // mainPortのイベントリスナーを追加
 	subPort.addListener(this, &ofApp::onSubPortChanged); // subPortのイベントリスナーを追加
 	number.addListener(this, &ofApp::onNumberChanged); // numberのイベントリスナーを追加
@@ -23,14 +24,15 @@ void ofApp::setup() {
 	// 設定
 	gui.setup("Settings", "settings"); // GUIを設定
 	gui.add(oscSettingsLabel.setup("OSC Settings", "")); // osc settings label
-	gui.add(ipAddress.setup("IP address", "127.0.0.1")); // 送信先のip address
+	gui.add(ipAddress.setup("Ctrl IP", "127.0.0.1")); // 運営側のip address
+	gui.add(ledIpAddress.setup("LED IP", "192.168.1.1")); // LED側のip address
 	gui.add(mainPort.setup("main port", 12345, 0, 65535)); // oscポート番号
 	gui.add(subPort.setup("sub port", 12346, 0, 65535)); // oscポート番号
 	gui.add(interval.setup("interval", 1, 1, 10)); // OscTestの送信間隔
 	gui.add(oscTest.setup("OSC Test", false)); // osc送信テストボタン
 
 	gui.add(dataSettingsLabel.setup("Data Settings", "")); // data settings label
-	gui.add(message.mode1.setup("mode1", 2, 0, 2)); // 送信モードを指定
+	gui.add(message.mode1.setup("mode1", 2, 0, 3)); // 送信モードを指定
 	gui.add(number.setup("number", "100")); // numberフィールド
 	gui.add(color.setup("color", initColor, minColor, maxColor)); // colorスライダ
 	gui.add(message.mode2.setup("mode2", 100, 0, 255)); // 遅延時間を指定
@@ -57,20 +59,30 @@ void ofApp::setup() {
 
 	/* ofxOsc */
 	receiver.setup(subPort); // receiverを設定
-	sender.setup(ipAddress, mainPort); // senderを設定
+	sender.setup(ipAddress, mainPort); // 運営側のsenderを設定
+	ledSender.setup(ledIpAddress, mainPort); // LED側のsenderを設定
+
+	/* Other */
+	srand(time(NULL)); // 乱数初期化
 }
 
 //--------------------------------------------------------------
 // イベントリスナー
 
-// IP addressを変更
+// 運営側のip addressを変更
 void ofApp::onIpAddressChanged(string& ipAddress) {
 	sender.setup(ipAddress, mainPort); // senderを設定
 }
 
+// LED側のip addressを変更
+void ofApp::onLedIpAddressChanged(string& ledIpAddress) {
+	ledSender.setup(ledIpAddress, mainPort); // senderを設定
+}
+
 // mainPortを変更
 void ofApp::onMainPortChanged(int& data) {
-	sender.setup(ipAddress, mainPort); // senderを設定
+	sender.setup(ipAddress, mainPort); // 運営側のsenderを設定
+	ledSender.setup(ledIpAddress, mainPort); // LED側のsenderを設定
 }
 
 // subPortを変更
@@ -138,7 +150,7 @@ void ofApp::sendOsc() {
 	m.addIntArg(message.color[2]);
 	m.addIntArg(message.mode2);
 
-	sender.sendMessage(m); // oscメッセージを送信
+	ledSender.sendMessage(m); // oscメッセージを送信
 	cout << "[osc] send " << m << endl; // ログ出力
 
 	// シュミレーションを実行
@@ -180,7 +192,6 @@ void ofApp::sendToMusicPlayer(int sceneNumber) {
 //--------------------------------------------------------------
 /* music playerデータを取得 */
 void ofApp::getMusicPlayerData(int beat) {
-	srand(time(NULL)); // 初期化
 
 	if (musicPlayerType) {
 		message.color[0] = rand() % 246 + 10;

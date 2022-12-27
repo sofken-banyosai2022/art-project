@@ -65,14 +65,18 @@ class ofApp : public ofBaseApp{
 		ofxTextField ipAddress; // 送信先のip address
 		ofxIntField mainPort; // LED Controller側のoscポート番号
 		ofxIntField subPort; // Music Player側のoscポート番号
-		ofSoundPlayer sound[10]; // シーンの音源配列
 
 		void onIpAddressChanged(string &data); // ip addressを変更
 		void onMainPortChanged(int &data); // mainPortを変更
 		void onSubPortChanged(int& data); // subPortを変更
+
+		/* sound */
+		ofJson soundList; // 音源リスト
+		ofSoundPlayer sound[10]; // 音源配列
+		int currentSoundNumber = -1; // 現在再生中の音源番号
+
 		void startScene(int sceneNumber); // シーンを開始
 
 		/* other */
-		ofJson soundList; // 音源リスト
 		Scheduler output; // bpmに従って信号を出力
 };
