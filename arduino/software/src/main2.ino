@@ -56,10 +56,8 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
     Serial.print(" "); Serial.print(myData.color[i]);
   }
 
-  Serial.println("");
-
   // mode2
-  Serial.print("mode2: "); Serial.println(myData.mode2);
+  Serial.print("\nmode2: "); Serial.println(myData.mode2);
 
   // 送信先を判別
   if (myData.number[0] == 100) { // デイジーチェーン

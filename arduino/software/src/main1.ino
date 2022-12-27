@@ -73,21 +73,24 @@ void setupOSC() {
       numberLength = m.arg<int>(1);
       memset(myData.number, 0, sizeof(myData.number));               // myData.number配列を初期化
       Serial.print("numberLength: "); Serial.println(m.arg<int>(1)); // ログ出力
+      Serial.print("number:");
 
       for (i = 0; i < numberLength; i++) {
         myData.number[i] =  m.arg<int>(2 + i);
-        Serial.print("number: "); Serial.println(m.arg<int>(2 + i)); // ログ出力
+        Serial.print(" "); Serial.print(m.arg<int>(2 + i)); // ログ出力
       }
 
-      // color      
+      // color    
+      Serial.print("\ncolor:");
+  
       for (i = 0; i < 3; i++) {
         myData.color[i] =  m.arg<int>(2 + numberLength + i);
-        Serial.print("color: "); Serial.println(m.arg<int>(2 + numberLength + i)); // ログ出力
+        Serial.print(" "); Serial.print(m.arg<int>(2 + numberLength + i)); // ログ出力
       }
 
       // mode2
       myData.mode2 = m.arg<int>(5 + numberLength);
-      Serial.print("mode2: "); Serial.println(m.arg<int>(5 + numberLength)); // ログ出力
+      Serial.print("\nmode2: "); Serial.println(m.arg<int>(5 + numberLength)); // ログ出力
 
       // ESP-NOWでデータを送信
       esp_now_send(main2Mac, (uint8_t *) &myData, sizeof(myData));
