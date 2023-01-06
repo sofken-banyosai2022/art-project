@@ -3,10 +3,10 @@
 
 /* データの構造 */
 typedef struct struct_message {
-  int mode1;      // 送信モードを指定
-  int number[10]; // 送信するユニットを指定
-  int color[3];   // 送信する色を指定
-  int mode2;      // 遅延時間を指定
+  uint8_t mode1;      // 送信モードを指定
+  uint8_t number[10]; // 送信するユニットを指定
+  uint8_t color[3];   // 送信する色を指定
+  uint8_t mode2;      // 遅延時間を指定
 } struct_message;
 
 /* Global variables */
@@ -27,7 +27,7 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 /* データ受信時のコールバック関数 */
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   size_t i;
-  int numberLength;
+  size_t numberLength;
   memcpy(&myData, incomingData, sizeof(myData));
 
   // ログ出力

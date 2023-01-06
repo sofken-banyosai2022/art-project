@@ -3,19 +3,19 @@
 
 /* データの構造 */
 typedef struct struct_message {
-  int mode1;      // 送信モードを指定
-  int number[10]; // 送信するユニットを指定
-  int color[3];   // 送信する色を指定
-  int mode2;      // 遅延時間を指定
+  uint8_t mode1;      // 送信モードを指定
+  uint8_t number[10]; // 送信するユニットを指定
+  uint8_t color[3];   // 送信する色を指定
+  uint8_t mode2;      // 遅延時間を指定
 } struct_message;
 
 /* Global variables */
-struct_message myData;              // データ
-const int unitNumber = UNIT_NUMBER; // ユニット番号
-const int ledPin[3] = {12, 14, 13}; // LED Pin番号 (赤,緑,青)
-uint8_t ledData[3] = {0, 0, 0};     // 現在のLED出力(0-255) (赤,緑,青)
-uint8_t nextMac[] = NEXT_MAC;       // 次のユニット番号のMACアドレス
-bool fDelayData = false;            // 関数delayDataの実行フラグ
+struct_message myData;                  // データ
+const uint8_t unitNumber = UNIT_NUMBER; // ユニット番号
+const uint8_t ledPin[3] = {12, 14, 13}; // LED Pin番号 (赤,緑,青)
+uint8_t ledData[3] = {0, 0, 0};         // 現在のLED出力(0-255) (赤,緑,青)
+uint8_t nextMac[] = NEXT_MAC;           // 次のユニット番号のMACアドレス
+bool fDelayData = false;                // 関数delayDataの実行フラグ
 
 /* ESP-NOWのSetup */
 void setupEspNow() {
@@ -47,7 +47,7 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 /* データ受信時のコールバック関数 */
 void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   size_t i;
-  int numberLength;
+  size_t numberLength;
   memcpy(&myData, incomingData, sizeof(myData));
 
   // ログ出力
@@ -119,7 +119,7 @@ void ledOn(int mode1, int color[3]) {
 void fade(int color[3], int delayTime) {
   float diff[3];
   float out[3] = {(float)ledData[0], (float)ledData[1], (float)ledData[2]};
-  int step = 100;
+  uint8_t step = 100;
 
   diff[0] = (float)(ledData[0] - color[0]) / step; // 現在値と次の値との差をstepで割った数 (R)
   diff[1] = (float)(ledData[1] - color[1]) / step; // 現在値と次の値との差をstepで割った数 (G)
