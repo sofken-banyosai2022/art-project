@@ -34,7 +34,19 @@ const compileFile = (type: string, fileData: string, number: number): string => 
     compileData = compileData.replace(/OSC_PORT/g, String(process.env.OSC_PORT));
   } else if (type === 'main2')  { // main2.ino
     compileData = compileData.replace(/SUB1_MAC/g, String(unitsJSON.units[0].mac));
-  } else if (type === 'sub')  { // sub.ino
+    compileData = compileData.replace(/SUB10_MAC/g, String(unitsJSON.units[9].mac));
+  } else if (type === 'sub') { // sub.ino
+
+    // routes
+    let espNowSend: string = '';
+    let unitNumber: number = 0;
+
+    for (let i = 0; i < unitsJSON.routes.route101[number].next.length; i++) {
+      unitNumber = unitsJSON.routes.route101[number].next[i];
+      espNowSend += `esp_now_send(${unitsJSON.units[unitNumber - 1].mac}, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信\n    `;
+    }
+  
+    compileData = compileData.replace(/ROUTE_101_ESP_NOW_SEND/g, String(espNowSend));
     compileData = compileData.replace(/UNIT_NUMBER/g, String(unitsJSON.units[number].number));
     compileData = compileData.replace(/NEXT_MAC/g, String(unitsJSON.units[number + 1].mac));
   }
