@@ -3,6 +3,8 @@
 
 /* データの構造 */
 typedef struct struct_message {
+  uint16_t seqNo;     // 送信シーケンス番号
+  uint8_t retry;      // 送信リトライ数
   uint8_t mode1;      // 送信モードを指定
   uint8_t number[10]; // 送信するユニットを指定
   uint8_t color[3];   // 送信する色を指定
@@ -13,14 +15,35 @@ typedef struct struct_message {
 struct_message myData;    // データ
 uint8_t broadcastMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // ブロードキャスト用MACアドレス
 uint8_t sub1Mac[] = SUB1_MAC;                                  // sub1のMACアドレス
+uint16_t lastSeqNo = 0;                                        // 最終シーケンス番号
+
+/*　データ送信 */
+void sendData() {
+
+  // 送信先を判別
+  if (myData.number[0] == 100) { // デイジーチェーン
+    esp_now_send(sub1Mac, (uint8_t *) &myData, sizeof(myData));      // ESP-NOWでデータを送信
+  } else { // ユニット番号, ブロードキャスト
+    esp_now_send(broadcastMac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信 (broadcast)
+  }
+}
+
+/* ESP-NOWでデータを再送 */
+void retry() {
+  myData.retry++;
+  Serial.print("retry: "); Serial.println(myData.retry); // ログ出力
+  delayMicroseconds(16383);
+  sendData(); // データ送信
+}
 
 /* データ送信時のコールバック関数 */
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
   if (sendStatus == 0) {
     Serial.println("[ESP-NOW] Delivery success");
-  } else{
+  } else {
     Serial.println("[ESP-NOW] Delivery fail");
+    if (myData.retry < 10) retry(); // リトライ数が10以下の場合はデータを再送
   }
 }
 
@@ -28,7 +51,15 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   size_t i;
   size_t numberLength;
+
+  // 送信情報
   memcpy(&myData, incomingData, sizeof(myData));
+
+  if (lastSeqNo == myData.seqNo) return; // 前回と同じシーケンス番号の場合は処理を終了
+
+  myData.retry = 0; // retry初期化
+  lastSeqNo = myData.seqNo; // 最終シーケンス番号を更新
+  Serial.print("seqNo: "); Serial.println(myData.seqNo); // シーケンス番号ログ出力
 
   // ログ出力
   // mode1
@@ -59,12 +90,7 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   // mode2
   Serial.print("\nmode2: "); Serial.println(myData.mode2);
 
-  // 送信先を判別
-  if (myData.number[0] == 100) { // デイジーチェーン
-    esp_now_send(sub1Mac, (uint8_t *) &myData, sizeof(myData));      // ESP-NOWでデータを送信
-  } else { // ユニット番号, ブロードキャスト
-    esp_now_send(broadcastMac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信 (broadcast)
-  }
+  sendData(); // データ送信
 }
 
 /* ESP-NOWのSetup */

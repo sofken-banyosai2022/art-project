@@ -3,6 +3,8 @@
 
 /* データの構造 */
 typedef struct struct_message {
+  uint16_t seqNo;     // 送信シーケンス番号
+  uint8_t retry;      // 送信リトライ数
   uint8_t mode1;      // 送信モードを指定
   uint8_t number[10]; // 送信するユニットを指定
   uint8_t color[3];   // 送信する色を指定
@@ -15,6 +17,7 @@ const uint8_t unitNumber = UNIT_NUMBER; // ユニット番号
 const uint8_t ledPin[3] = {12, 14, 13}; // LED Pin番号 (赤,緑,青)
 uint8_t ledData[3] = {0, 0, 0};         // 現在のLED出力(0-255) (赤,緑,青)
 uint8_t nextMac[] = NEXT_MAC;           // 次のユニット番号のMACアドレス
+uint16_t lastSeqNo = 0;                 // 最終シーケンス番号
 bool fDelayData = false;                // 関数delayDataの実行フラグ
 
 /* ESP-NOWのSetup */
@@ -34,6 +37,40 @@ void setupEspNow() {
   esp_now_register_recv_cb(OnDataRecv);                      // 受信完了時のイベントを登録
 }
 
+/*　データ送信 */
+void sendData(size_t numberLength) {
+
+  // 自分宛てか判別
+  for (size_t i = 0; i < numberLength; i++) {
+    if (myData.number[i] == unitNumber || myData.number[i] == 200) { // ユニット番号, ブロードキャスト
+      ledOn(myData.mode1, myData.color);  // LEDオン
+      break;
+    } else if (myData.number[i] == 100) { // デイジーチェーン
+      fDelayData = true;                  // 指定秒数だけ遅延
+      ledOn(myData.mode1, myData.color);  // LEDオン
+    }
+  }
+}
+
+/* ESP-NOWでデータを再送 */
+void retry() {
+  size_t numberLength;
+
+  myData.retry++;
+  Serial.print("retry: "); Serial.println(myData.retry); // ログ出力
+  delayMicroseconds(16383);
+
+  // number
+  for (size_t i = 1; i < 10; i++) {
+    if (!myData.number[i]) {
+      numberLength = i;
+      break;
+    }
+  }
+
+  sendData(numberLength); // データ送信
+}
+
 /* データ送信時のコールバック関数 */
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
@@ -41,6 +78,7 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
     Serial.println("[ESP-NOW] Delivery success");
   } else{
     Serial.println("[ESP-NOW] Delivery fail");
+    if (myData.retry < 10) retry(); // リトライ数が10以下の場合はデータを再送
   }
 }
 
@@ -48,7 +86,15 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   size_t i;
   size_t numberLength;
+
+  // 送信情報
   memcpy(&myData, incomingData, sizeof(myData));
+
+  if (lastSeqNo == myData.seqNo) return; // 前回と同じシーケンス番号の場合は処理を終了
+
+  myData.retry = 0; // retry初期化
+  lastSeqNo = myData.seqNo; // 最終シーケンス番号を更新
+  Serial.print("seqNo: "); Serial.println(myData.seqNo); // シーケンス番号ログ出力
 
   // ログ出力
   // mode1
@@ -76,21 +122,10 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.print(" "); Serial.print(myData.color[i]);
   }
 
-  Serial.println("");
-
   // mode2
-  Serial.print("mode2: "); Serial.println(myData.mode2);
+  Serial.print("\nmode2: "); Serial.println(myData.mode2);
 
-  // 自分宛てか判別
-  for (i = 0; i < numberLength; i++) {
-    if (myData.number[i] == unitNumber || myData.number[i] == 200) { // ユニット番号, ブロードキャスト
-      ledOn(myData.mode1, myData.color);  // LEDオン
-      break;
-    } else if (myData.number[i] == 100) { // デイジーチェーン
-      fDelayData = true;                  // 指定秒数だけ遅延
-      ledOn(myData.mode1, myData.color);  // LEDオン
-    }
-  }
+  sendData(numberLength); // データ送信
 }
 
 /* 指定秒数だけ遅延 */
@@ -101,7 +136,7 @@ void delayData() {
 }
 
 /* LEDオン */
-void ledOn(int mode1, int color[3]) {
+void ledOn(uint8_t mode1, uint8_t color[3]) {
   if (mode1 == 1) { // 通常
     analogWrite(ledPin[0], color[0]);
     analogWrite(ledPin[1], color[1]);
@@ -116,7 +151,7 @@ void ledOn(int mode1, int color[3]) {
 }
 
 /* LED演出：フェードイン・アウト */
-void fade(int color[3], int delayTime) {
+void fade(uint8_t color[3], uint16_t delayTime) {
   float diff[3];
   float out[3] = {(float)ledData[0], (float)ledData[1], (float)ledData[2]};
   uint8_t step = 100;
@@ -127,9 +162,9 @@ void fade(int color[3], int delayTime) {
 
   // 各色の値を変更
   for (size_t diffNum = 0; diffNum < step; diffNum++) {
-    analogWrite(ledPin[0], (int)(out[0] -= diff[0]));
-    analogWrite(ledPin[1], (int)(out[1] -= diff[1]));
-    analogWrite(ledPin[2], (int)(out[2] -= diff[2]));
+    analogWrite(ledPin[0], (uint8_t)(out[0] -= diff[0]));
+    analogWrite(ledPin[1], (uint8_t)(out[1] -= diff[1]));
+    analogWrite(ledPin[2], (uint8_t)(out[2] -= diff[2]));
     delayMicroseconds(delayTime);
   }
 

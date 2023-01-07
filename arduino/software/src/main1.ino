@@ -4,6 +4,8 @@
 
 /* データの構造 */
 typedef struct struct_message {
+  uint16_t seqNo;     // 送信シーケンス番号
+  uint8_t retry;      // 送信リトライ数
   uint8_t mode1;      // 送信モードを指定
   uint8_t number[10]; // 送信するユニットを指定
   uint8_t color[3];   // 送信する色を指定
@@ -13,6 +15,7 @@ typedef struct struct_message {
 /* Global variables */
 struct_message myData;                                         // データ
 uint8_t main2Mac[] = MAIN2_MAC;                                // main2のMACアドレス
+uint16_t lastSeqNo = 0;                                        // 最終シーケンス番号
 
 // Wi-Fi
 const char* ssid = WiFi_SSID;
@@ -26,13 +29,22 @@ IPAddress subnet(IP_ADDRESS_SUBNET);
 // OSC
 const uint16_t port = OSC_PORT;
 
+/* ESP-NOWでデータを再送 */
+void retry() {
+  myData.retry++;
+  Serial.print("retry: "); Serial.println(myData.retry); // ログ出力
+  delayMicroseconds(16383);
+  esp_now_send(main2Mac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信
+}
+
 /* データ送信時のコールバック関数 */
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
   if (sendStatus == 0) {
     Serial.println("[ESP-NOW] Delivery success");
-  } else{
+  } else {
     Serial.println("[ESP-NOW] Delivery fail");
+    if (myData.retry < 10) retry(); // リトライ数が10以下の場合はデータを再送
   }
 }
 
@@ -61,8 +73,11 @@ void setupOSC() {
       size_t i;
       size_t numberLength;
 
-      // address
-      Serial.print("address: "); Serial.println(m.address()); // ログ出力
+      // 送信情報
+      myData.retry = 0; // retry初期化
+      myData.seqNo = ++lastSeqNo; // シーケンス番号
+      Serial.print("address: "); Serial.println(m.address()); // addressログ出力
+      Serial.print("seqNo: "); Serial.println(myData.seqNo); // シーケンス番号ログ出力
 
       // 送信するデータを設定
       // mode1
