@@ -38,15 +38,29 @@ const compileFile = (type: string, fileData: string, number: number): string => 
   } else if (type === 'sub') { // sub.ino
 
     // routes
-    let espNowSend: string = '';
+    let i: number;
+    let routeMac: string = '';
+    let espNowSendRoute101: string = '';
+    let espNowSendRoute102: string = '';
     let unitNumber: number = 0;
 
-    for (let i = 0; i < unitsJSON.routes.route101[number].next.length; i++) {
+    // route101
+    for (i = 0; i < unitsJSON.routes.route101[number].next.length; i++) {
       unitNumber = unitsJSON.routes.route101[number].next[i];
-      espNowSend += `esp_now_send(${unitsJSON.units[unitNumber - 1].mac}, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信\n    `;
+      routeMac += `uint8_t sub${unitNumber}Mac[] = ${unitsJSON.units[unitNumber - 1].mac};\n`;
+      espNowSendRoute101 += `esp_now_send(sub${unitNumber}Mac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信\n    `;
+    }
+
+    // route102
+    for (i = 0; i < unitsJSON.routes.route102[number].next.length; i++) {
+      unitNumber = unitsJSON.routes.route102[number].next[i];
+      routeMac += `uint8_t sub${unitNumber}Mac[] = ${unitsJSON.units[unitNumber - 1].mac};\n`;
+      espNowSendRoute102 += `esp_now_send(sub${unitNumber}Mac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信\n    `;
     }
   
-    compileData = compileData.replace(/ROUTE_101_ESP_NOW_SEND/g, String(espNowSend));
+    compileData = compileData.replace(/ROUTE_MAC/g, String(routeMac));
+    compileData = compileData.replace(/ROUTE_101_ESP_NOW_SEND/g, String(espNowSendRoute101));
+    compileData = compileData.replace(/ROUTE_102_ESP_NOW_SEND/g, String(espNowSendRoute102));
     compileData = compileData.replace(/UNIT_NUMBER/g, String(unitsJSON.units[number].number));
     compileData = compileData.replace(/NEXT_MAC/g, String(unitsJSON.units[number + 1].mac));
   }

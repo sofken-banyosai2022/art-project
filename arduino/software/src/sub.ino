@@ -16,9 +16,11 @@ struct_message myData;                  // データ
 const uint8_t unitNumber = UNIT_NUMBER; // ユニット番号
 const uint8_t ledPin[3] = {12, 14, 13}; // LED Pin番号 (赤,緑,青)
 uint8_t ledData[3] = {0, 0, 0};         // 現在のLED出力(0-255) (赤,緑,青)
-uint8_t nextMac[] = NEXT_MAC;           // 次のユニット番号のMACアドレス
 uint16_t lastSeqNo = 0;                 // 最終シーケンス番号
 bool fDelayData = false;                // 関数delayDataの実行フラグ
+
+uint8_t nextMac[] = NEXT_MAC;           // 次のユニット番号のMACアドレス
+ROUTE_MAC
 
 /* ESP-NOWのSetup */
 void setupEspNow() {
@@ -45,7 +47,7 @@ void sendData(size_t numberLength) {
     if (myData.number[i] == unitNumber || myData.number[i] == 200) { // ユニット番号, ブロードキャスト
       ledOn(myData.mode1, myData.color);  // LEDオン
       break;
-    } else if (myData.number[i] == 100 || myData.number[i] == 101) { // デイジーチェーン
+    } else if (myData.number[i] == 100 || myData.number[i] == 101 || myData.number[i] == 102) { // デイジーチェーン
       fDelayData = true;                  // 指定秒数だけ遅延
       ledOn(myData.mode1, myData.color);  // LEDオン
     }
@@ -132,10 +134,12 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
 void delayData() {
   delay(myData.mode2 * 10); // 遅延
 
-  if (myData.number[i] == 100) {
+  if (myData.number[0] == 100) {
     esp_now_send(nextMac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信
-  } else if (myData.number[i] == 101) {
+  } else if (myData.number[0] == 101) {
     ROUTE_101_ESP_NOW_SEND
+  } else if (myData.number[0] == 102) {
+    ROUTE_102_ESP_NOW_SEND
   }
 
   fDelayData = false;       // フラグを下ろす
