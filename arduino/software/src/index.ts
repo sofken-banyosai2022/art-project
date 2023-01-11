@@ -7,6 +7,11 @@ import unitsJSON from '../data/units.json' assert {type: 'json'};
 dotenv.config();
 const unitsLength: number = Object.keys(unitsJSON.units).length;
 
+interface Route {
+  number: number;
+  next: number[];
+}
+
 /* Output file */
 const outputFile = (fileName: string, fileData: string): void => {
 
@@ -18,6 +23,28 @@ const outputFile = (fileName: string, fileData: string): void => {
       if (err) throw err;
     });
   });
+}
+
+/* compile route */
+const compileRoute = (routeName: string, route: Route[], compileData: string, number: number): string => {
+  let unitNumber: number;
+  let espNowSendRoute: string = '';
+
+  for (let i = 0; i < route[number].next.length; i++) {
+    unitNumber = route[number].next[i];
+
+    if (number + 2 == unitNumber) { // nextMacと同じ場合
+      espNowSendRoute += `esp_now_send(nextMac, (uint8_t *) &myData, sizeof(myData));\n    `;
+    } else { // nextMacと違う場合
+      compileData = compileData.replace(/NEXT_MAC/g, `NEXT_MAC;\nuint8_t sub${unitNumber}Mac[] = ${unitsJSON.units[unitNumber - 1].mac}`);
+      compileData = compileData.replace(/デバイスを登録/g, `デバイスを登録\n  esp_now_add_peer(sub${unitNumber}Mac, ESP_NOW_ROLE_COMBO, 1, NULL, 0);`);
+      espNowSendRoute += `esp_now_send(sub${unitNumber}Mac, (uint8_t *) &myData, sizeof(myData));\n    `;
+    }
+  }
+
+  compileData = compileData.replace(new RegExp('ROUTE_' + routeName + '_ESP_NOW_SEND', 'g'), espNowSendRoute);
+
+  return compileData;
 }
 
 /* compile file */
@@ -34,33 +61,9 @@ const compileFile = (type: string, fileData: string, number: number): string => 
     compileData = compileData.replace(/OSC_PORT/g, String(process.env.OSC_PORT));
   } else if (type === 'main2')  { // main2.ino
     compileData = compileData.replace(/SUB1_MAC/g, String(unitsJSON.units[0].mac));
-    compileData = compileData.replace(/SUB10_MAC/g, String(unitsJSON.units[9].mac));
   } else if (type === 'sub') { // sub.ino
-
-    // routes
-    let i: number;
-    let routeMac: string = '';
-    let espNowSendRoute101: string = '';
-    let espNowSendRoute102: string = '';
-    let unitNumber: number = 0;
-
-    // route101
-    for (i = 0; i < unitsJSON.routes.route101[number].next.length; i++) {
-      unitNumber = unitsJSON.routes.route101[number].next[i];
-      routeMac += `uint8_t sub${unitNumber}Mac[] = ${unitsJSON.units[unitNumber - 1].mac};\n`;
-      espNowSendRoute101 += `esp_now_send(sub${unitNumber}Mac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信\n    `;
-    }
-
-    // route102
-    for (i = 0; i < unitsJSON.routes.route102[number].next.length; i++) {
-      unitNumber = unitsJSON.routes.route102[number].next[i];
-      routeMac += `uint8_t sub${unitNumber}Mac[] = ${unitsJSON.units[unitNumber - 1].mac};\n`;
-      espNowSendRoute102 += `esp_now_send(sub${unitNumber}Mac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信\n    `;
-    }
-  
-    compileData = compileData.replace(/ROUTE_MAC/g, String(routeMac));
-    compileData = compileData.replace(/ROUTE_101_ESP_NOW_SEND/g, String(espNowSendRoute101));
-    compileData = compileData.replace(/ROUTE_102_ESP_NOW_SEND/g, String(espNowSendRoute102));
+    compileData = compileRoute('101', unitsJSON.routes.route101, compileData, number); // compile route
+    compileData = compileRoute('102', unitsJSON.routes.route102, compileData, number); // compile route
     compileData = compileData.replace(/UNIT_NUMBER/g, String(unitsJSON.units[number].number));
     compileData = compileData.replace(/NEXT_MAC/g, String(unitsJSON.units[number + 1].mac));
   }

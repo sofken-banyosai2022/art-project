@@ -19,8 +19,7 @@ uint8_t ledData[3] = {0, 0, 0};         // 現在のLED出力(0-255) (赤,緑,�
 uint16_t lastSeqNo = 0;                 // 最終シーケンス番号
 bool fDelayData = false;                // 関数delayDataの実行フラグ
 
-uint8_t nextMac[] = NEXT_MAC;           // 次のユニット番号のMACアドレス
-ROUTE_MAC
+uint8_t nextMac[] = NEXT_MAC;
 
 /* ESP-NOWのSetup */
 void setupEspNow() {
@@ -34,7 +33,9 @@ void setupEspNow() {
 
   // ESP-NOWの設定
   esp_now_set_self_role(ESP_NOW_ROLE_COMBO);                 // 自分の役割を設定
-  esp_now_add_peer(nextMac, ESP_NOW_ROLE_COMBO, 1, NULL, 0); // デバイスを登録
+
+  // デバイスを登録
+  esp_now_add_peer(nextMac, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
   esp_now_register_send_cb(OnDataSent);                      // 送信完了時のイベントを登録
   esp_now_register_recv_cb(OnDataRecv);                      // 受信完了時のイベントを登録
 }

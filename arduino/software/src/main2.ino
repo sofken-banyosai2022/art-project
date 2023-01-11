@@ -15,18 +15,14 @@ typedef struct struct_message {
 struct_message myData;    // データ
 uint8_t broadcastMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // ブロードキャスト用MACアドレス
 uint8_t sub1Mac[] = SUB1_MAC;                                  // sub1のMACアドレス
-uint8_t sub10Mac[] = SUB10_MAC;                                // sub10のMACアドレス
 uint16_t lastSeqNo = 0;                                        // 最終シーケンス番号
 
 /*　データ送信 */
 void sendData() {
 
   // 送信先を判別
-  if (myData.number[0] == 100) { // デイジーチェーン
+  if (myData.number[0] == 100 || myData.number[0] == 101) { // デイジーチェーン
     esp_now_send(sub1Mac, (uint8_t *) &myData, sizeof(myData));      // ESP-NOWでデータを送信
-  } else if (myData.number[0] == 101) { // デイジーチェーン
-    esp_now_send(sub1Mac, (uint8_t *) &myData, sizeof(myData));      // ESP-NOWでデータを送信
-    esp_now_send(sub10Mac, (uint8_t *) &myData, sizeof(myData));     // ESP-NOWでデータを送信
   } else { // ユニット番号, ブロードキャスト
     esp_now_send(broadcastMac, (uint8_t *) &myData, sizeof(myData)); // ESP-NOWでデータを送信 (broadcast)
   }
